@@ -44,7 +44,7 @@ class Player(Sprite):
         self.get_input()
         self.constraints()
         self.move(dt)
-        
+
     def draw(self):
         super().draw()
 
@@ -53,9 +53,21 @@ class Laser(Sprite):
         super().__init__(texture, pos, LASER_SPEED, Vector2(0, -1))
 
 class Meteor(Sprite):
-    def __init__(self, texture, pos, speed):
-        super().__init__(texture, pos, speed, Vector2(uniform(-0.5,0.5),1)) 
-        self.exploded = False
+    def __init__(self, texture):
+        pos  = Vector2(randint(0, WINDOW_WIDTH), randint(-150, -50))
+        speed = randint(*METEOR_SPEED_RANGE)
+        direction = Vector2(uniform(-0.5,0.5),1)
+        super().__init__(texture, pos, speed, direction)
+        self.rotation = 0
+        self.rect = Rectangle(0, 0, self.size.x, self.size.y)
+    
+    def update(self, dt):
+        super().update(dt)
+        self.rotation += 50 * dt
+
+    def draw(self):
+        target_rect = Rectangle(self.pos.x, self.pos.y, self.size.x, self.size.y)
+        draw_texture_pro(self.texture, self.rect, target_rect, Vector2(self.size.x /2, self.size.y /2), self.rotation, WHITE)
 
 class Explosion:
     def __init__(self, frames, pos):

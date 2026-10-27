@@ -7,8 +7,9 @@ class Game:
         init_window(WINDOW_WIDTH, WINDOW_HEIGHT, 'SpriteGame')
         init_audio_device()
         self.import_assets()
+        self.lasers, self.meteors = [], []
+        self.meteor_creation_timer = Timer(METEOR_TIMER_DURATION, True, True, self.create_meteor)
         self.player = Player(self.assets['player'], self.create_laser)
-        self.lasers = []
 
     def import_assets(self):
         self.IMAGES = Path(__file__).parent.parent / "images"
@@ -38,28 +39,31 @@ class Game:
          for star in self.star_data:
             draw_texture_ex(self.assets['star'], star[0], 0, star[1], WHITE)
 
-
     def create_laser(self, pos):
          self.lasers.append(Laser(self.assets['laser'], pos))
          play_sound(self.audios['laser'])
 
+    def create_meteor(self):
+         self.meteors.append(Meteor(self.assets['meteor']))
     def discard_sprites(self):
          self.lasers = [laser for laser in self.lasers if not laser.discard]
+         self.meteors = [meteor for meteor in self.meteors if not meteor.discard]
 
     def update(self):
-            print(len(self.lasers))
+            print(len(self.meteors))
             self.discard_sprites()
             dt = get_frame_time()
             self.player.update(dt)
-            for laser in self.lasers:
-                 laser.update(dt)
+            self.meteor_creation_timer.update()
+            for sprite in self.lasers + self.meteors:
+                 sprite.update(dt)
 
     def draw(self):
             begin_drawing()
             clear_background(BG_COLOR)
             self.draw_stars()
-            for laser in self.lasers:
-                 laser.draw()
+            for sprite in self.lasers + self.meteors:
+                 sprite.draw()
             self.player.draw()
             end_drawing()
          
