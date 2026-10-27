@@ -8,34 +8,49 @@ class Sprite:
         self.pos = pos
         self.speed = speed
         self.direction = direction
+        self.discard = False
 
-    def update(self, dt):
+    def check_discard(self):
+        self.discard = not -300 < self.pos.y < WINDOW_HEIGHT + 300
+
+    def move(self, dt):
         self.pos.x += self.speed * self.direction.x * dt
         self.pos.y += self.speed * self.direction.y * dt
+
+    def update(self, dt):
+        self.check_discard()
+        self.move(dt)
 
     def draw(self):
         draw_texture_v(self.texture, self.pos, WHITE)
 
 class Player(Sprite):
-    def __init__(self, texture):
+    def __init__(self, texture , shoot_laser):
         super().__init__(texture, Vector2(WINDOW_WIDTH /2 , WINDOW_HEIGHT/2) , PLAYER_SPEED, Vector2())
-
+        self.shoot_laser = shoot_laser
     def get_input(self):
         self.direction.x = int(is_key_down(KEY_RIGHT)) - int(is_key_down(KEY_LEFT))
         self.direction.y = int(is_key_down(KEY_DOWN)) - int(is_key_down(KEY_UP))
         self.direction = Vector2Normalize(self.direction)
 
         if is_key_pressed(KEY_SPACE):
-            print('shooting laser')
+            self.shoot_laser(Vector2(self.pos.x + self.size.x/2 - 5 , self.pos.y - 30))
+
+    def constraints(self):
+        self.pos.x = max(0, min(self.pos.x, WINDOW_WIDTH - self.size.x))
+        self.pos.y = max(0, min(self.pos.y, WINDOW_HEIGHT - self.size.y))
+
     def update(self, dt):
         self.get_input()
-        super().update(dt)
+        self.constraints()
+        self.move(dt)
+        
     def draw(self):
         super().draw()
 
 class Laser(Sprite):
-    def __init__(self, texture):
-        super().__init__(texture, Vector2(), LASER_SPEED, Vector2(0, -1))
+    def __init__(self, texture, pos):
+        super().__init__(texture, pos, LASER_SPEED, Vector2(0, -1))
 
 class Meteor(Sprite):
     def __init__(self, texture, pos, speed):

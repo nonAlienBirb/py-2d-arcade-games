@@ -7,7 +7,8 @@ class Game:
         init_window(WINDOW_WIDTH, WINDOW_HEIGHT, 'SpriteGame')
         init_audio_device()
         self.import_assets()
-        self.player = Player(self.assets['player'])
+        self.player = Player(self.assets['player'], self.create_laser)
+        self.lasers = []
 
     def import_assets(self):
         self.IMAGES = Path(__file__).parent.parent / "images"
@@ -22,8 +23,8 @@ class Game:
         }
 
         self.audios = {
-             'laser-sound' : str(self.AUDIOS / 'laser.wav'),
-             'explosion' : str(self.AUDIOS / 'explosion.wav'),
+             'laser' : load_sound(str(self.AUDIOS / 'laser.wav')),
+             'explosion' : load_sound(str(self.AUDIOS / 'explosion.wav')),
              'background-music' : str(self.AUDIOS / 'music.wav')
         }
 
@@ -36,15 +37,29 @@ class Game:
     def draw_stars(self):
          for star in self.star_data:
             draw_texture_ex(self.assets['star'], star[0], 0, star[1], WHITE)
-            
+
+
+    def create_laser(self, pos):
+         self.lasers.append(Laser(self.assets['laser'], pos))
+         play_sound(self.audios['laser'])
+
+    def discard_sprites(self):
+         self.lasers = [laser for laser in self.lasers if not laser.discard]
+
     def update(self):
+            print(len(self.lasers))
+            self.discard_sprites()
             dt = get_frame_time()
             self.player.update(dt)
+            for laser in self.lasers:
+                 laser.update(dt)
 
     def draw(self):
             begin_drawing()
             clear_background(BG_COLOR)
             self.draw_stars()
+            for laser in self.lasers:
+                 laser.draw()
             self.player.draw()
             end_drawing()
          
