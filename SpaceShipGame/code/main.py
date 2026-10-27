@@ -7,7 +7,8 @@ class Game:
         init_window(WINDOW_WIDTH, WINDOW_HEIGHT, 'SpriteGame')
         init_audio_device()
         self.import_assets()
-        self.lasers, self.meteors = [], []
+        self.paused = False
+        self.lasers, self.meteors, self.explosions = [], [], []
         self.meteor_creation_timer = Timer(METEOR_TIMER_DURATION, True, True, self.create_meteor)
         self.player = Player(self.assets['player'], self.create_laser)
 
@@ -45,24 +46,44 @@ class Game:
 
     def create_meteor(self):
          self.meteors.append(Meteor(self.assets['meteor']))
+    
+    def check_collisions(self):
+        # lasers & meteors
+        for laser in self.lasers:
+            for meteor in self.meteors:
+                if check_collision_circle_rec(meteor.get_center(), meteor.collision_radius, laser.get_rectangle()):
+                    meteor.discard, laser.discard = True, True
+                    self.explosions.append(Explosion(self.assets['explosion'], Vector2(laser.pos.x - laser.size.x / 2  , laser.pos.y)))
+        # meteors & player
+        for meteor in self.meteors:
+            if check_collision_circles(self.player.get_center(), self.player.collision_radius, meteor.get_center(), meteor.collision_radius):
+                # self.explosions.append(Explosion(self.assets['explosion'], Vector2()))
+                self.pause_game()
+                print('GAME OVER')
+    
     def discard_sprites(self):
          self.lasers = [laser for laser in self.lasers if not laser.discard]
          self.meteors = [meteor for meteor in self.meteors if not meteor.discard]
+         self.explosions = [explosion for explosion in self.explosions if not explosion.discard]
+
+    def pause_game(self):
+         self.paused = True
 
     def update(self):
-            print(len(self.meteors))
             self.discard_sprites()
             dt = get_frame_time()
-            self.player.update(dt)
-            self.meteor_creation_timer.update()
-            for sprite in self.lasers + self.meteors:
-                 sprite.update(dt)
+            if not self.paused:
+                self.player.update(dt)
+                self.meteor_creation_timer.update()
+                for sprite in self.lasers + self.meteors + self.explosions:
+                    sprite.update(dt)
+            self.check_collisions()
 
     def draw(self):
             begin_drawing()
             clear_background(BG_COLOR)
             self.draw_stars()
-            for sprite in self.lasers + self.meteors:
+            for sprite in self.lasers + self.meteors + self.explosions:
                  sprite.draw()
             self.player.draw()
             end_drawing()

@@ -9,6 +9,12 @@ class Sprite:
         self.speed = speed
         self.direction = direction
         self.discard = False
+        self.collision_radius = self.size.y / 2 
+
+    def get_center(self):
+        return Vector2(
+            self.pos.x + self.size.x /2 , 
+            self.pos.y + self.size.y /2)
 
     def check_discard(self):
         self.discard = not -300 < self.pos.y < WINDOW_HEIGHT + 300
@@ -52,6 +58,9 @@ class Laser(Sprite):
     def __init__(self, texture, pos):
         super().__init__(texture, pos, LASER_SPEED, Vector2(0, -1))
 
+    def get_rectangle(self):
+        return Rectangle(self.pos.x, self.pos.y, self.size.x, self.size.y)
+    
 class Meteor(Sprite):
     def __init__(self, texture):
         pos  = Vector2(randint(0, WINDOW_WIDTH), randint(-150, -50))
@@ -60,7 +69,8 @@ class Meteor(Sprite):
         super().__init__(texture, pos, speed, direction)
         self.rotation = 0
         self.rect = Rectangle(0, 0, self.size.x, self.size.y)
-    
+    def get_center(self):
+        return Vector2(self.pos.x, self.pos.y)
     def update(self, dt):
         super().update(dt)
         self.rotation += 50 * dt
@@ -71,12 +81,20 @@ class Meteor(Sprite):
 
 class Explosion:
     def __init__(self, frames, pos):
+        self.frames = frames
         self.pos = pos
-        self.speed = 15
-        self.frame_count = 0
-        self.EXPLOSION_FRAMES = frames
+        self.speed = 30
+        self.frame_index = 0
+        self.discard = False
+
+    def update(self, dt):
+        if self.frame_index < len(self.frames) - 1:
+            self.frame_index += self.speed * dt
+        else:
+            self.discard = True
+    def draw(self):
+        draw_texture_v(self.frames[int(self.frame_index)], self.pos, WHITE)
     def explode(self, dt):
-        self.frame_count += self.speed * dt
-        self.frame_count = 1 if self.frame_count == 0 else self.frame_count 
-        draw_texture(self.EXPLOSION_FRAMES[int(self.frame_count % len(self.EXPLOSION_FRAMES))], self.pos[0],self.pos[1], WHITE)
+        self.frame_index += self.speed * dt
+        draw_texture_v(self.frames[int(self.frame_index % len(self.frames))], self.pos, WHITE)
 
