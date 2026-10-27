@@ -14,6 +14,7 @@ class Game:
         self.AUDIOS = Path(__file__).parent.parent / "audio"
 
         self.assets = {
+             'star' : load_texture(str(self.IMAGES / 'star.png')),
              'player' : load_texture(str(self.IMAGES / 'spaceship.png')),
              'laser' : load_texture(str(self.IMAGES / 'laser.png')),
              'meteor' : load_texture(str(self.IMAGES / 'meteor.png')),
@@ -21,8 +22,21 @@ class Game:
         }
 
         self.audios = {
-             'laser-sound' : str(self.AUDIOS / 'laser.wav')
+             'laser-sound' : str(self.AUDIOS / 'laser.wav'),
+             'explosion' : str(self.AUDIOS / 'explosion.wav'),
+             'background-music' : str(self.AUDIOS / 'music.wav')
         }
+
+        self. star_data = [
+             (Vector2(randint(0, WINDOW_WIDTH), randint(0, WINDOW_HEIGHT)), #pos
+             uniform(0.5, 1.6) # size
+             ) for _ in range(30)
+        ]
+
+    def draw_stars(self):
+         for star in self.star_data:
+            draw_texture_ex(self.assets['star'], star[0], 0, star[1], WHITE)
+            
     def update(self):
             dt = get_frame_time()
             self.player.update(dt)
@@ -30,6 +44,7 @@ class Game:
     def draw(self):
             begin_drawing()
             clear_background(BG_COLOR)
+            self.draw_stars()
             self.player.draw()
             end_drawing()
          
