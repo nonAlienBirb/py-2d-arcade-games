@@ -94,6 +94,7 @@ class Explosion:
             self.discard = True
     def draw(self):
         draw_texture_v(self.frames[int(self.frame_index)], self.pos, WHITE)
+        
     def explode(self, dt):
         self.frame_index += self.speed * dt
         draw_texture_v(self.frames[int(self.frame_index % len(self.frames))], self.pos, WHITE)
