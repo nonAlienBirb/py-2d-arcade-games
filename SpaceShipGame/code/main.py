@@ -12,6 +12,7 @@ class Game:
         self.lasers, self.meteors, self.explosions = [], [], []
         self.meteor_creation_timer = Timer(METEOR_TIMER_DURATION, True, True, self.create_meteor)
         self.player = Player(self.assets['player'], self.create_laser)
+        self.score = 0
 
     def import_assets(self):
         self.IMAGES = Path(__file__).parent.parent / "images"
@@ -42,12 +43,43 @@ class Game:
          for star in self.star_data:
             draw_texture_ex(self.assets['star'], star[0], 0, star[1], WHITE)
 
-    def draw_score(self):
-         score = int(get_time())
-         text_size = measure_text_ex(self.assets['font'], str(score), FONT_SIZE, 0)
+    def draw_gameOver(self):
+          text = "GAME OVER"
+          text_size = measure_text_ex(self.assets['font'], text, FONT_SIZE, 0)
 
-         draw_text_ex(self.assets['font'], str(score), Vector2((WINDOW_WIDTH - text_size.x) / 2, 50), FONT_SIZE, 0, WHITE)
-    
+          position = Vector2(
+               (WINDOW_WIDTH - text_size.x) / 2, 200
+          )
+
+          draw_text_ex(
+               self.assets['font'],
+               text,
+               position,
+               FONT_SIZE,
+               0,
+               WHITE
+          )
+
+    def draw_score(self):
+          if not self.paused:
+               self.score = int(get_time())
+
+          text = f"score: {self.score}"
+
+          text_size = measure_text_ex(self.assets['font'], text, FONT_SIZE, 0)
+
+          position = Vector2(
+               (WINDOW_WIDTH - text_size.x) / 2, 50
+          )
+
+          draw_text_ex(
+               self.assets['font'],
+               text,
+               position,
+               FONT_SIZE,
+               0,
+               WHITE)
+          
     def create_laser(self, pos):
          self.lasers.append(Laser(self.assets['laser'], pos))
          play_sound(self.audios['laser'])
@@ -96,6 +128,8 @@ class Game:
             self.draw_score()
             for sprite in self.lasers + self.meteors + self.explosions:
                  sprite.draw()
+            if self.paused:
+               self.draw_gameOver()
             self.player.draw()
             end_drawing()
          
